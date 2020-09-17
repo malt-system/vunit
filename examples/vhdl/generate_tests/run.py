@@ -77,50 +77,34 @@ for test in TB_GENERATED.get_tests():
     if test.name == "Test 2":
         # I am trying to achieve two test configurations with following sim_options:
         # test 'cat' : {'modelsim.vsim_flags': ['-G dur/param_enable=1', '-G dur/param_who=cat',
-        #                                       '-G dur/param_what=fish', '-G dur/param_eats=YES'], }
+        #                                       '-G dur/param_what=fish', '-G dur/param_eats=YES'] }
         # test 'dog' : {'modelsim.vsim_flags': ['-G dur/param_enable=1', '-G dur/param_who=dog',
-        #                                       '-G dur/param_what=fish', '-G dur/param_eats=NO'], }
+        #                                       '-G dur/param_what=fish', '-G dur/param_eats=NO'] }
         #
         # the 'default' configuration is also added to make it easier to see how things work
 
         # ----------------------------------------------------------------
         # create two configurations with different options
         # note: LIB sim_options are always overwritten, here is no overwrite=False option
-        test.add_config(name='cat', sim_options={'modelsim.vsim_flags': ['-G dur/param_who=cat']})
-        test.add_config(name='dog', sim_options={'modelsim.vsim_flags': ['-G dur/param_who=dog']})
+        test.add_config(name='cat')
+        test.add_config(name='dog')
 
-        # this one preserves default sim_options, and different options could've been
-        # added with set_sim_option in each test_case if it got overwrite argument:
-        test.add_config(name='default')
-
-        # print test_cases' sim_options
-        print('\nSim options after add_configs:')
+        # dirty manual sim_option setup
         for testconfig in [x for x in test._test_case.get_configuration_dicts()[0].values()][1:]:
-            print("{} modelsim.vsim_flags : {}".format(testconfig.name, testconfig.sim_options["modelsim.vsim_flags"]))
-
-        # ----------------------------------------------------------------
-        # set same sim_option to all test_cases in test
-        # this work's okay
-        test.set_sim_option('modelsim.vsim_flags', ['-G dur/param_what=fish'], overwrite=False)
-
+            if testconfig.name == "cat":
+                testconfig.set_sim_option("modelsim.vsim_flags",
+                                          testconfig.sim_options.get("modelsim.vsim_flags", []) + [
+                                          '-G dur/param_who=cat',
+                                          '-G dur/param_what=fish',
+                                          '-G dur/param_eats=YES'])
+            if testconfig.name == "dog":
+                testconfig.set_sim_option("modelsim.vsim_flags",
+                                          testconfig.sim_options.get("modelsim.vsim_flags", []) + [
+                                          '-G dur/param_who=dog',
+                                          '-G dur/param_what=fish',
+                                          '-G dur/param_eats=NO'])
         # print test_cases' sim_options
-        print('\nSim options after test set_sim_option:')
-        for testconfig in [x for x in test._test_case.get_configuration_dicts()[0].values()][1:]:
-            print("{} modelsim.vsim_flags : {}".format(testconfig.name, testconfig.sim_options["modelsim.vsim_flags"]))
-
-        # ----------------------------------------------------------------
-        # set different optons to differrent test
-        for testconfig in [x for x in test._test_case.get_configuration_dicts()[0].values()][1:]:
-            # note: Configuration.set_sim_option() does not have overwrite argument
-            if testconfig.name == 'cat':
-                testconfig.set_sim_option('modelsim.vsim_flags', ['-G dur/param_eats=YES'])
-            elif testconfig.name == 'dog':
-                testconfig.set_sim_option('modelsim.vsim_flags', ['-G dur/param_eats=NO'])
-            else:
-                testconfig.set_sim_option('modelsim.vsim_flags', ['-G dur/param_eats=DEFAULT'])
-
-        # print test_cases' sim_options
-        print('\nSim options after configuration set_sim_option:')
+        # print('\nSim options after configuration set_sim_option:')
         for testconfig in [x for x in test._test_case.get_configuration_dicts()[0].values()][1:]:
             print("{} modelsim.vsim_flags : {}".format(testconfig.name, testconfig.sim_options["modelsim.vsim_flags"]))
 
